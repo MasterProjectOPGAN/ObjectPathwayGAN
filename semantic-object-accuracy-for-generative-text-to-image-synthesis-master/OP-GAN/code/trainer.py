@@ -275,10 +275,13 @@ class condGANTrainer(object):
             im.save(fullpath)
 
     def train(self):
-        experiment_id = mlflow.create_experiment("Object Pathway GAN Experiment on MS-COCO Dataset")
-        experiment = mlflow.get_experiment(experiment_id)
+        try:
+            experiment_id = mlflow.create_experiment("Object Pathway GAN Experiment on MS-COCO Dataset")
+            experiment = mlflow.get_experiment(experiment_id)
+        except:
+            pass
         torch.autograd.set_detect_anomaly(True)
-        _d = dict(cfg)
+        _d = dict(cfg.TRAIN)
         mlflow.log_params(_d)
 
         text_encoder, image_encoder, netG, netsD, start_epoch = self.build_models()
@@ -374,7 +377,7 @@ class condGANTrainer(object):
                 ######################################################
                 # errD_total = 0
                 D_logs = ''
-                metrics = {}
+                #metrics = {}
                 for i in range(len(netsD)):
                     netsD[i].zero_grad()
                     if cfg.TRAIN.OPTIMIZE_DATA_LOADING:
@@ -393,8 +396,10 @@ class condGANTrainer(object):
                     # backward and update parameters
                     errD.backward()
                     optimizersD[i].step()
-                    D_logs += 'errD%d: %.2f ' % (i, errD.item())
-                mlflow.log_metric("Discriminator Loss", D_logs)
+                    #D_logs += 'errD%d: %.2f ' % (i, errD.item())
+                    Dkey = "errD{}".format(i)
+                    #metrics[Dkey] = errD.item()
+                    mlflow.log_metric(Dkey, errD.item())
 
                 #######################################################
                 # (4) Update G network: maximize log(D(G(z)))
@@ -419,7 +424,6 @@ class condGANTrainer(object):
                                        transf_matrices_inv=transf_matrices_inv, max_objects=max_objects)
                 kl_loss = KL_loss(mu, logvar)
                 errG_total += kl_loss
-                mlflow.log_metrics()
                 # backward and update parameters
                 errG_total.backward()
                 mlflow.log_metric("Generator Loss", errG_total.item())

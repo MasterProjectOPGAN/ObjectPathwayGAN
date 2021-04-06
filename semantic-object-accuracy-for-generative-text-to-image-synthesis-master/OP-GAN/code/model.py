@@ -40,7 +40,7 @@ def conv1x1(in_planes, out_planes, bias=False):
                      padding=0, bias=bias)
 
 
-def conv3x3(in_planes, out_planes, stride=1):
+def conv3x3(in_planes, out_planes, stride=1, bias=False):
     "3x3 convolution with padding"
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
@@ -705,17 +705,17 @@ class D_NET64(nn.Module):
         h_code = self.conv1(image)
         h_code = self.act(h_code)
         h_code = self.conv2(h_code)
-        h_code = self.bn2(h_code)
+        #h_code = self.bn2(h_code)
         h_code = self.act(h_code)
 
         h_code = torch.cat((h_code, h_code_locals), 1)
 
         h_code = self.conv3(h_code)
-        h_code = self.bn3(h_code)
+        #h_code = self.bn3(h_code)
         h_code = self.act(h_code)
 
         h_code = self.conv4(h_code)
-        h_code = self.bn4(h_code)
+        #h_code = self.bn4(h_code)
         x_code4 = self.act(h_code)
 
         return x_code4

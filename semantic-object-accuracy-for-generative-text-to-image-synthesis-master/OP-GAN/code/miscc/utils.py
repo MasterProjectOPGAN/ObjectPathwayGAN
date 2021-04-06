@@ -320,10 +320,18 @@ def build_super_images2(real_imgs, captions, cap_lens, ixtoword,
 
 
 ####################################################################
+import traceback
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
-        nn.init.orthogonal_(m.weight.data, 1.0)
+        #traceback.print_stack()
+        try:
+            nn.init.orthogonal_(m.weight.data, 1.0)
+        except:
+            #torch.nn.init.orthogonal_(m.weight_u, 1.0)
+            #torch.nn.init.orthogonal_(m.weight_v, 1.0)
+            nn.init.orthogonal_(m.weight_bar.data, 1.0)
+            #m.bias.data.fill_(0)
     elif classname.find('BatchNorm') != -1:
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
