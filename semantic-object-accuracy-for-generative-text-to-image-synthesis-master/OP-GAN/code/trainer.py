@@ -27,6 +27,7 @@ from model import RNN_ENCODER, CNN_ENCODER
 from miscc.losses import words_loss
 from miscc.losses import discriminator_loss, generator_loss, KL_loss
 
+import mlflow
 logger = logging.getLogger()
 
 
@@ -274,7 +275,11 @@ class condGANTrainer(object):
             im.save(fullpath)
 
     def train(self):
+        experiment_id = mlflow.create_experiment("Object Pathway GAN Experiment on MS-COCO Dataset")
+        experiment = mlflow.get_experiment(experiment_id)
         torch.autograd.set_detect_anomaly(True)
+        _d = dict(cfg)
+        mlflow.log_params(_d)
 
         text_encoder, image_encoder, netG, netsD, start_epoch = self.build_models()
         avg_param_G = copy_G_params(netG)
@@ -369,6 +374,7 @@ class condGANTrainer(object):
                 ######################################################
                 # errD_total = 0
                 D_logs = ''
+                metrics = {}
                 for i in range(len(netsD)):
                     netsD[i].zero_grad()
                     if cfg.TRAIN.OPTIMIZE_DATA_LOADING:
@@ -388,6 +394,7 @@ class condGANTrainer(object):
                     errD.backward()
                     optimizersD[i].step()
                     D_logs += 'errD%d: %.2f ' % (i, errD.item())
+                mlflow.log_metric("Discriminator Loss", D_logs)
 
                 #######################################################
                 # (4) Update G network: maximize log(D(G(z)))
@@ -412,8 +419,10 @@ class condGANTrainer(object):
                                        transf_matrices_inv=transf_matrices_inv, max_objects=max_objects)
                 kl_loss = KL_loss(mu, logvar)
                 errG_total += kl_loss
+                mlflow.log_metrics()
                 # backward and update parameters
                 errG_total.backward()
+                mlflow.log_metric("Generator Loss", errG_total.item())
                 optimizerG.step()
                 for p, avg_p in zip(netG.parameters(), avg_param_G):
                     avg_p.mul_(0.999).add_(p.data, alpha=0.001)

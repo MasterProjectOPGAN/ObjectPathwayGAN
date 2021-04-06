@@ -8,5 +8,5 @@ then
 else
       echo "Starting training on GPU ${GPU}."
 fi
-python3 -u code/main.py --cfg code/cfg/cfg_file_train.yml
+python3 -u code/main.py --cfg code/cfg/cfg_file_train.yml --max_objects 3
 echo "Done."

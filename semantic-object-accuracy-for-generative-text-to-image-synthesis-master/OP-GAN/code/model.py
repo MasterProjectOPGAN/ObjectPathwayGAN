@@ -11,6 +11,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from miscc.config import cfg
 from GlobalAttention import GlobalAttentionGeneral as ATT_NET
+from spectral import SpectralNorm
 
 logger = logging.getLogger()
 
@@ -585,8 +586,8 @@ class G_NET(nn.Module):
 # ############## D networks ##########################
 def Block3x3_leakRelu(in_planes, out_planes):
     block = nn.Sequential(
-        conv3x3(in_planes, out_planes),
-        nn.BatchNorm2d(out_planes),
+        SpectralNorm(conv3x3(in_planes, out_planes, bias=True)),
+        #nn.BatchNorm2d(out_planes),
         nn.LeakyReLU(0.2, inplace=True)
     )
     return block
@@ -595,8 +596,8 @@ def Block3x3_leakRelu(in_planes, out_planes):
 # Downsale the spatial size by a factor of 2
 def downBlock(in_planes, out_planes):
     block = nn.Sequential(
-        nn.Conv2d(in_planes, out_planes, 4, 2, 1, bias=False),
-        nn.BatchNorm2d(out_planes),
+        SpectralNorm(nn.Conv2d(in_planes, out_planes, 4, 2, 1, bias=True)),
+        #nn.BatchNorm2d(out_planes),
         nn.LeakyReLU(0.2, inplace=True)
     )
     return block
@@ -606,19 +607,19 @@ def downBlock(in_planes, out_planes):
 def encode_image_by_16times(ndf):
     encode_img = nn.Sequential(
         # --> state size. ndf x in_size/2 x in_size/2
-        nn.Conv2d(3, ndf, 4, 2, 1, bias=False),
+        SpectralNorm(nn.Conv2d(3, ndf, 4, 2, 1, bias=True)),
         nn.LeakyReLU(0.2, inplace=True),
         # --> state size 2ndf x x in_size/4 x in_size/4
-        nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
-        nn.BatchNorm2d(ndf * 2),
+        SpectralNorm(nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=True)),
+        #nn.BatchNorm2d(ndf * 2),
         nn.LeakyReLU(0.2, inplace=True),
         # --> state size 4ndf x in_size/8 x in_size/8
-        nn.Conv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=False),
-        nn.BatchNorm2d(ndf * 4),
+        SpectralNorm(nn.Conv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=True)),
+        #nn.BatchNorm2d(ndf * 4),
         nn.LeakyReLU(0.2, inplace=True),
         # --> state size 8ndf x in_size/16 x in_size/16
-        nn.Conv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
-        nn.BatchNorm2d(ndf * 8),
+        SpectralNorm(nn.Conv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=True)),
+        #nn.BatchNorm2d(ndf * 8),
         nn.LeakyReLU(0.2, inplace=True)
     )
     return encode_img
@@ -669,21 +670,21 @@ class D_NET64(nn.Module):
 
         # global pathway
         # --> state size. ndf x in_size/2 x in_size/2
-        self.conv1 = nn.Conv2d(3, cfg.GAN.DISC_FEAT_DIM, 4, 2, 1, bias=False)
+        self.conv1 = SpectralNorm(nn.Conv2d(3, cfg.GAN.DISC_FEAT_DIM, 4, 2, 1, bias=True))
         # --> state size 2ndf x x in_size/4 x in_size/4
-        self.conv2 = nn.Conv2d(cfg.GAN.DISC_FEAT_DIM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 2, 1, bias=False)
-        self.bn2 = nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2)
+        self.conv2 = SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 2, 1, bias=True))
+        #self.bn2 = nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2)
         # --> state size 4ndf x in_size/8 x in_size/8
-        self.conv3 = nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 4, 4, 2, 1, bias=False)
-        self.bn3 = nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 4)
+        self.conv3 = SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 4, 4, 2, 1, bias=True))
+        #self.bn3 = nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 4)
         # --> state size 8ndf x in_size/16 x in_size/16
-        self.conv4 = nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 8, 4, 2, 1, bias=False)
-        self.bn4 = nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 8)
+        self.conv4 = SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 8, 4, 2, 1, bias=True))
+        #self.bn4 = nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 8)
 
         # object pathway
         self.local = nn.Sequential(
-            nn.Conv2d(3 + cfg.TEXT.CLASSES_NUM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 1, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2),
+            SpectralNorm(nn.Conv2d(3 + cfg.TEXT.CLASSES_NUM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 1, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2),
             nn.LeakyReLU(0.2, inplace=True)
         )
 
@@ -728,20 +729,20 @@ class D_NET128(nn.Module):
         self.img_code_s32_1 = Block3x3_leakRelu(cfg.GAN.DISC_FEAT_DIM * 16, cfg.GAN.DISC_FEAT_DIM * 8)
         self.encode_img = nn.Sequential(
             # --> state size. ndf x in_size/2 x in_size/2
-            nn.Conv2d(3, cfg.GAN.DISC_FEAT_DIM, 4, 2, 1, bias=False),
+            SpectralNorm(nn.Conv2d(3, cfg.GAN.DISC_FEAT_DIM, 4, 2, 1, bias=True)),
             nn.LeakyReLU(0.2, inplace=True),
             # --> state size 2ndf x x in_size/4 x in_size/4
-            nn.Conv2d(cfg.GAN.DISC_FEAT_DIM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2),
+            SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 2, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2),
             nn.LeakyReLU(0.2, inplace=True),
         )
         self.encode_final = nn.Sequential(
-            nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 4, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 4),
+            SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 4, 4, 2, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 4),
             nn.LeakyReLU(0.2, inplace=True),
             # --> state size 8ndf x in_size/16 x in_size/16
-            nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 8, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 8),
+            SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 8, 4, 2, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 8),
             nn.LeakyReLU(0.2, inplace=True)
         )
         #
@@ -752,11 +753,11 @@ class D_NET128(nn.Module):
         self.COND_DNET = D_GET_LOGITS(cfg.GAN.DISC_FEAT_DIM, cfg.TEXT.EMBEDDING_DIM, bcondition=True)
 
         self.local = nn.Sequential(
-            nn.Conv2d(3 + cfg.TEXT.CLASSES_NUM, cfg.GAN.DISC_FEAT_DIM, 4, 1, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM),
+            SpectralNorm(nn.Conv2d(3 + cfg.TEXT.CLASSES_NUM, cfg.GAN.DISC_FEAT_DIM, 4, 1, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(cfg.GAN.DISC_FEAT_DIM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 1, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2),
+            SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 1, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2),
             nn.LeakyReLU(0.2, inplace=True),
         )
 
@@ -790,20 +791,20 @@ class D_NET256(nn.Module):
         self.img_code_s16 = encode_image_by_16times(cfg.GAN.DISC_FEAT_DIM)
         self.encode_img = nn.Sequential(
             # --> state size. ndf x in_size/2 x in_size/2
-            nn.Conv2d(3, cfg.GAN.DISC_FEAT_DIM, 4, 2, 1, bias=False),
+            SpectralNorm(nn.Conv2d(3, cfg.GAN.DISC_FEAT_DIM, 4, 2, 1, bias=True)),
             nn.LeakyReLU(0.2, inplace=True),
             # --> state size 2ndf x x in_size/4 x in_size/4
-            nn.Conv2d(cfg.GAN.DISC_FEAT_DIM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2),
+            SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 2, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2),
             nn.LeakyReLU(0.2, inplace=True),
         )
         self.encode_final = nn.Sequential(
-            nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 4, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 4),
+            SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 4, 4, 2, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 4),
             nn.LeakyReLU(0.2, inplace=True),
             # --> state size 8ndf x in_size/16 x in_size/16
-            nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 8, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 8),
+            SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM * 4, cfg.GAN.DISC_FEAT_DIM * 8, 4, 2, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 8),
             nn.LeakyReLU(0.2, inplace=True)
         )
         self.img_code_s32 = downBlock(cfg.GAN.DISC_FEAT_DIM * 8, cfg.GAN.DISC_FEAT_DIM * 16)
@@ -817,11 +818,11 @@ class D_NET256(nn.Module):
         self.COND_DNET = D_GET_LOGITS(cfg.GAN.DISC_FEAT_DIM, cfg.TEXT.EMBEDDING_DIM, bcondition=True)
 
         self.local = nn.Sequential(
-            nn.Conv2d(3 + cfg.TEXT.CLASSES_NUM, cfg.GAN.DISC_FEAT_DIM, 4, 1, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM),
+            SpectralNorm(nn.Conv2d(3 + cfg.TEXT.CLASSES_NUM, cfg.GAN.DISC_FEAT_DIM, 4, 1, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(cfg.GAN.DISC_FEAT_DIM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 1, 1, bias=False),
-            nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2),
+            SpectralNorm(nn.Conv2d(cfg.GAN.DISC_FEAT_DIM, cfg.GAN.DISC_FEAT_DIM * 2, 4, 1, 1, bias=True)),
+            #nn.BatchNorm2d(cfg.GAN.DISC_FEAT_DIM * 2),
             nn.LeakyReLU(0.2, inplace=True),
         )
 

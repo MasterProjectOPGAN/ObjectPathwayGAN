@@ -94,7 +94,7 @@ if __name__ == "__main__":
         cfg.DEVICE = torch.device('cpu')
     else:
         cfg.CUDA = True
-        cfg.DEVICE = torch.device('cuda:0')
+        cfg.DEVICE = torch.device('cuda')
     logger.info('USING DEVICE %s' % cfg.DEVICE)
 
     if args.data_dir != '':
