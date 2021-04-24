@@ -2,16 +2,96 @@
 <head>
   <meta charset='utf-8'>
   <link rel='stylesheet' href='../static/style.css'>
-  <script src='../static/client.js'></script>
+  <script src='../static/client.js?n=1'></script>
 </head>
 <body>
 <div>
   <div class='center'>
-    <div class='title'>Artificial Intelligence enabled Image generation from text 🐻</div>
+    <div class='title'>Artificial Intelligence enabled Image generation from text </div>
     <p>
       Generate images from Object pathway GAN Model
     </p>
+     <!--div class="dropdown">
+  	<button onclick="showPicked()" class="dropbtn">Dropdown</button>
+  	<div id="myDropdown" class="dropdown-content">
+    		<a href="#">person</a>
+    		<a href="#">bicycle</a>
+    		<a href="#">car</a>
+  	</div>
+     </div!--> 
       <div class='analyze'>
+      <!--label for="text">Input text:</label>
+      <input type="text" id="text1" name="text"><br><br!-->
+      <label for="text">Select a Category</label>
+	<select id="text1" name="text1">
+		<!--option value="person">Person</option>
+		<option value="car">Car</option>
+		<option value="laptop">Laptop</option>
+		<option value="train">Train</option!-->
+	<script>
+	  var options =
+	[
+  	{
+    		"text"  : "Person",
+    		"value" : "person"
+  	},
+  	{
+    		"text"     : "Bicycle",
+    		"value"    : "bicycle",
+    		"selected" : true
+  	},
+  	{
+    		"text"  : "Car",
+    		"value" : "car"
+  	},
+  	{
+    		"text"  : "Motorcycle",
+    		"value" : "motorcycle"
+  	},
+  	{
+    		"text"     : "Plane",
+    		"value"    : "plane",
+  	},
+  	{
+    		"text"  : "Bus",
+    		"value" : "bus"
+  	},
+  	{
+    		"text"  : "Train",
+    		"value" : "train"
+  	},
+  	{
+    		"text"     : "Truck",
+    		"value"    : "truck",
+  	},
+  	{
+    		"text"  : "Boat",
+    		"value" : "boat"
+  	},
+
+	{
+    		"text"  : "Traffic Light",
+    		"value" : "trafficlight"
+  	},
+  	{
+    		"text"     : "Fire Hydrant",
+    		"value"    : "hydrant",
+  	},
+  	{
+    		"text"  : "Stop Sign",
+    		"value" : "stopsign"
+  	}
+	];
+
+	var selectBox = document.getElementById('text1');
+
+	for(var i = 0, l = options.length; i < l; i++){
+	  var option = options[i];
+  	selectBox.options.add( new Option(option.text, option.value, option.selected) );
+	}
+</script>
+  </select>
+	</label>
         <button id='analyze-button' onclick='analyze()'>Analyze</button>
       </div>
       <div id='image-path'>

@@ -3,6 +3,7 @@ from __future__ import print_function
 import logging
 
 from six.moves import range
+import pickle
 
 import torch
 import torch.nn as nn
@@ -475,7 +476,8 @@ class condGANTrainer(object):
             netG.to(cfg.DEVICE)
             netG.eval()
             #
-            text_encoder = RNN_ENCODER(self.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
+            #text_encoder = RNN_ENCODER(self.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
+            text_encoder = RNN_ENCODER(27297, nhidden=cfg.TEXT.EMBEDDING_DIM)
             state_dict = torch.load(cfg.TRAIN.NET_E, map_location=lambda storage, loc: storage)
             text_encoder.load_state_dict(state_dict)
             text_encoder = text_encoder.to(cfg.DEVICE)
@@ -493,60 +495,75 @@ class condGANTrainer(object):
             max_objects = 10
             logger.info('Load G from: %s', model_dir)
 
+            coco_label_file = "../SOA/data/coco.names"
+
+            with open(coco_label_file) as f:
+                content = f.readlines()
+
+            content = [x.strip() for x in content]
+
+            label_idx = 0
+            for label in content:
             # the path to save generated images
-            s_tmp = model_dir[:model_dir.rfind('.pth')].split("/")[-1]
-            save_dir = '%s/%s/%s' % ("../output", s_tmp, split_dir)
-            mkdir_p(save_dir)
-            logger.info("Saving images to: {}".format(save_dir))
+                s_tmp = model_dir[:model_dir.rfind('.pth')].split("/")[-1]
+                cfg.CURRENT_LABEL="label_"+label
+                save_dir = '%s/%s/%s/%s' % ("../output", s_tmp, split_dir, label_path)
+                mkdir_p(save_dir)
+                logger.info("Saving images to: {}".format(save_dir))
 
-            number_batches = num_samples // batch_size
-            if number_batches < 1:
-                number_batches = 1
+                number_batches = num_samples // batch_size
+                if number_batches < 1:
+                    number_batches = 1
 
-            data_iter = iter(self.data_loader)
+                data_iter = iter(self.data_loader)
+                i=0
+                for step in tqdm(range(number_batches)):
+                    data = data_iter.next()
 
-            for step in tqdm(range(number_batches)):
-                data = data_iter.next()
+                    imgs, captions, cap_lens, class_ids, keys, transformation_matrices, label_one_hot, _, _ = prepare_data(
+                        data, eval=True)
 
-                imgs, captions, cap_lens, class_ids, keys, transformation_matrices, label_one_hot, _ = prepare_data(
-                    data, eval=True)
+                    transf_matrices = transformation_matrices[0]
+                    transf_matrices_inv = transformation_matrices[1]
 
-                transf_matrices = transformation_matrices[0]
-                transf_matrices_inv = transformation_matrices[1]
+                    hidden = text_encoder.init_hidden(batch_size)
 
-                hidden = text_encoder.init_hidden(batch_size)
-                # words_embs: batch_size x nef x seq_len
-                # sent_emb: batch_size x nef
-                words_embs, sent_emb = text_encoder(captions, cap_lens, hidden)
-                words_embs, sent_emb = words_embs.detach(), sent_emb.detach()
-                mask = (captions == 0)
-                num_words = words_embs.size(2)
-                if mask.size(1) > num_words:
-                    mask = mask[:, :num_words]
+                    # words_embs: batch_size x nef x seq_len
+                    # sent_emb: batch_size x nef
+                    words_embs, sent_emb = text_encoder(captions, cap_lens, hidden)
+                    #words_embs, sent_emb = text_encoder(caption, cap_lens, hidden)
+                    words_embs, sent_emb = words_embs.detach(), sent_emb.detach()
+                    mask = (captions == 0)
+                    num_words = words_embs.size(2)
+                    if mask.size(1) > num_words:
+                        mask = mask[:, :num_words]
 
                 #######################################################
                 # (2) Generate fake images
                 ######################################################
-                noise.data.normal_(0, 1)
-                local_noise.data.normal_(0, 1)
-                inputs = (noise, local_noise, sent_emb, words_embs, mask, transf_matrices, transf_matrices_inv, label_one_hot, max_objects)
-                inputs = tuple((inp.to(cfg.DEVICE) if isinstance(inp, torch.Tensor) else inp) for inp in inputs)
+                    noise.data.normal_(0, 1)
+                    local_noise.data.normal_(0, 1)
+                    inputs = (noise, local_noise, sent_emb, words_embs, mask, transf_matrices, transf_matrices_inv, label_one_hot, max_objects)
+                    inputs = tuple((inp.to(cfg.DEVICE) if isinstance(inp, torch.Tensor) else inp) for inp in inputs)
 
-                with torch.no_grad():
-                    fake_imgs, _, mu, logvar = netG(*inputs)
-                for batch_idx, j in enumerate(range(batch_size)):
-                    s_tmp = '%s/%s' % (save_dir, keys[j])
-                    folder = s_tmp[:s_tmp.rfind('/')]
-                    if not os.path.isdir(folder):
-                        logger.info('Make a new folder: %s', folder)
-                        mkdir_p(folder)
-                    k = -1
-                    # for k in range(len(fake_imgs)):
-                    im = fake_imgs[k][j].data.cpu().numpy()
-                    # [-1, 1] --> [0, 255]
-                    im = (im + 1.0) * 127.5
-                    im = im.astype(np.uint8)
-                    im = np.transpose(im, (1, 2, 0))
-                    im = Image.fromarray(im)
-                    fullpath = '%s_s%d.png' % (s_tmp, step*batch_size+batch_idx)
-                    im.save(fullpath)
+                    with torch.no_grad():
+                        fake_imgs, _, mu, logvar = netG(*inputs)
+                    image_idx = 0
+                    for batch_idx, j in enumerate(range(batch_size)):
+                        s_tmp = '%s/%s' % (save_dir, keys[j])
+                        folder = s_tmp[:s_tmp.rfind('/')]
+                        if not os.path.isdir(folder):
+                            logger.info('Make a new folder: %s', folder)
+                            mkdir_p(folder)
+                        k = -1
+                        # for k in range(len(fake_imgs)):
+                        im = fake_imgs[k][j].data.cpu().numpy()
+                        # [-1, 1] --> [0, 255]
+                        im = (im + 1.0) * 127.5
+                        im = im.astype(np.uint8)
+                        im = np.transpose(im, (1, 2, 0))
+                        im = Image.fromarray(im)
+                        fullpath = '%s_s%d.png' % (s_tmp, step*batch_size+batch_idx)
+                        im.save(fullpath)
+                        image_idx+=1
+                label_idx+=1

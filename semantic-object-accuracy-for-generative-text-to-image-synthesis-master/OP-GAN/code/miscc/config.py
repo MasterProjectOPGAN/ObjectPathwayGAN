@@ -70,6 +70,8 @@ __C.TEXT.EMBEDDING_DIM = 256
 __C.TEXT.WORDS_NUM = 12
 __C.TEXT.CLASSES_NUM = 81
 
+__C.CURRENT_LABEL = ""
+__C.CAPTION = ""
 
 def _merge_a_into_b(a, b):
     """Merge config dictionary a into config dictionary b, clobbering the

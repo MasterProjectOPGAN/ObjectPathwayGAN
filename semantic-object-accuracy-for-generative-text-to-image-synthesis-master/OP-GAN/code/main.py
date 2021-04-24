@@ -172,4 +172,4 @@ if __name__ == "__main__":
                                                     "not valid for sampling since we use" \
                                                     "generated bounding boxes at test time."
         use_generated_bboxes = cfg.TRAIN.GENERATED_BBOXES
-        algo.sampling(split_dir, num_samples=500)  # generate images
+        algo.sampling(split_dir, num_samples=1)  # generate images

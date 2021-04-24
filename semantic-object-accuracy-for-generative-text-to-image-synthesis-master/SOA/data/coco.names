@@ -1,16 +1,16 @@
 person
 bicycle
 car
-motorbike
-aeroplane
+motorcycle
+plane
 bus
 train
 truck
 boat
-traffic light
-fire hydrant
-stop sign
-parking meter
+trafficlight
+hydrant
+stopsign
+parkingmeter
 bench
 bird
 cat
@@ -30,15 +30,15 @@ suitcase
 frisbee
 skis
 snowboard
-sports ball
+ball
 kite
-baseball bat
-baseball glove
+baseballbat
+baseballglove
 skateboard
 surfboard
-tennis racket
+racket
 bottle
-wine glass
+wineglass
 cup
 fork
 knife
@@ -47,10 +47,10 @@ bowl
 banana
 apple
 sandwich
-orange
+oranges
 broccoli
 carrot
-hot dog
+hotdog
 pizza
 donut
 cake
@@ -58,14 +58,14 @@ chair
 sofa
 pottedplant
 bed
-diningtable
+table
 toilet
-tvmonitor
+monitor
 laptop
-mouse
+computermouse
 remote
 keyboard
-cell phone
+cellphone
 microwave
 oven
 toaster
@@ -74,7 +74,7 @@ refrigerator
 book
 clock
 vase
-scissors
-teddy bear
-hair drier
+scissor
+teddybear
+hairdrier
 toothbrush

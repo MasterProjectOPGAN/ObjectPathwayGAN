@@ -10,6 +10,7 @@ TREE:
 TRAIN:
     FLAG: False
     NET_G: 'models/op-gan.pth'
+    #NET_G: 'output/coco_glu-gan2_2021_04_06_19_01_43_9609/Model/checkpoint_0019.pth'
     B_NET_D: False
     BATCH_SIZE: [50]
     NET_E: 'models/coco/text_encoder100.pth'

@@ -13,15 +13,14 @@ import torchvision.transforms as transforms
 
 import numpy.random as random
 import pickle
-
+import time
 from miscc.utils import *
 
 logger = logging.getLogger()
 
-
 def prepare_data(data, eval=False):
     if eval:
-        imgs, captions, captions_lens, class_ids, keys, transformation_matrices, label, bbox = data
+        imgs, captions, captions_lens, class_ids, keys, transformation_matrices, label, bbox,cap = data
     else:
         imgs, captions, captions_lens, class_ids, keys, transformation_matrices, label = data
 
@@ -50,7 +49,7 @@ def prepare_data(data, eval=False):
         sorted_cap_lens = Variable(sorted_cap_lens).detach()
 
     if eval:
-        return [real_imgs, captions, sorted_cap_lens, class_ids, keys, transformation_matrices, label, bbox]
+        return [real_imgs, captions, sorted_cap_lens, class_ids, keys, transformation_matrices, label, bbox, cap]
     else:
         return [real_imgs, captions, sorted_cap_lens, class_ids, keys, transformation_matrices, label]
 
@@ -304,6 +303,9 @@ class TextDataset(data.Dataset):
 
     def get_caption(self, sent_ix):
         # a list of indices for a sentence
+        #for w in self.captions[sent_ix]:
+        #    print('%s ',self.ixtoword[w])
+        #print('')
         sent_caption = np.asarray(self.captions[sent_ix]).astype('int64')
         if (sent_caption == 0).sum() > 0:
             logger.error('ERROR: do not need END (0) token', sent_caption)
@@ -368,13 +370,28 @@ class TextDataset(data.Dataset):
 
         label = self.get_one_hot_labels(label)
 
-        # random select a sentence
-        sent_ix = random.randint(0, self.embeddings_num)
-        new_sent_ix = index * self.embeddings_num + sent_ix
+        if not cfg.TRAIN.FLAG:
+            with open("../../SOA/captions/"+cfg.CURRENT_LABEL+".pkl", "rb") as f:
+                captions = pickle.load(f)
+
+           # new_ix = random.randint(0, len(captions))
+            from random import randrange
+            new_ix = randrange(len(captions))
+            current_caption_idx = captions[new_ix]["idx"]
+            new_sent_ix = current_caption_idx[0]*5+current_caption_idx[1]
+
+        else:
+            sent_ix = random.randint(0, self.embeddings_num)
+            new_sent_ix = index * self.embeddings_num + sent_ix
+        
         caps, cap_len = self.get_caption(new_sent_ix)
 
+        cap = ""
+        for w in self.captions[new_sent_ix]:
+            cap += self.ixtoword[w] + " "
+
         if self.eval:
-            return imgs, caps, cap_len, cls_id, key, transformation_matrices, label, bbox_scaled
+            return imgs, caps, cap_len, cls_id, key, transformation_matrices, label, bbox_scaled, cap
         return imgs, caps, cap_len, cls_id, key, transformation_matrices, label
 
     def __len__(self):
