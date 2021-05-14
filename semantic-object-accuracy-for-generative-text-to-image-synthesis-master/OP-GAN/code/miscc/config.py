@@ -72,6 +72,8 @@ __C.TEXT.CLASSES_NUM = 81
 
 __C.CURRENT_LABEL = ""
 __C.CAPTION = ""
+__C.TRAIN.CAPTION_PATH = "../data/captions/"
+__C.TRAIN.DEPLOY_FLAG = False
 
 def _merge_a_into_b(a, b):
     """Merge config dictionary a into config dictionary b, clobbering the

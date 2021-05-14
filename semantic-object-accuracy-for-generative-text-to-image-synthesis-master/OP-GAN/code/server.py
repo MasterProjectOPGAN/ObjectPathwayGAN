@@ -32,10 +32,11 @@ app.mount('/static', StaticFiles(directory='./static'))
 path = Path(__file__).parent
 
 cfg.TRAIN.FLAG = False
+cfg.TRAIN.DEPLOY_FLAG = True
 netG = model.G_NET()
 netG.apply(weights_init)
 netG.to()
-state_dict = torch.load('../output/coco_glu-gan2_2021_04_06_19_01_43_9609/Model/checkpoint_0019.pth', map_location=lambda storage, loc: storage)
+state_dict = torch.load('../output/coco_glu-gan2_2021_04_06_19_01_43_9609/Model/checkpoint_0020.pth', map_location=lambda storage, loc: storage)
 
 netG.load_state_dict(state_dict["netG"])
 for p in netG.parameters():
@@ -96,39 +97,39 @@ async def analyze(request):
     save_dir = './static'
     data_iter = iter(dataloader)
 
-    for step in tqdm(range(1)):
-        data = data_iter.next()
-        imgs, captions, cap_lens, class_ids, keys, transformation_matrices, label_one_hot, _, cap = prepare_data(
+    #for step in tqdm(range(1)):
+    data = data_iter.next()
+    imgs, captions, cap_lens, class_ids, keys, transformation_matrices, label_one_hot, _, cap = prepare_data(
                                     data, eval=True)
-        transf_matrices = transformation_matrices[0]
-        transf_matrices_inv = transformation_matrices[1]
-        hidden = text_encoder.init_hidden(2)
-        words_embs, sent_emb = text_encoder(captions, cap_lens, hidden)
-        words_embs, sent_emb = words_embs.detach(), sent_emb.detach()
-        mask = (captions == 0)
-        num_words = words_embs.size(2)
-        if mask.size(1) > num_words:
-            mask = mask[:, :num_words]
-        inputs = (noise, local_noise, sent_emb, words_embs, mask, transf_matrices, transf_matrices_inv, label_one_hot, max_objects)
-        inputs = tuple((inp.to(cfg.DEVICE) if isinstance(inp, torch.Tensor) else inp) for inp in inputs)
-        with torch.no_grad():
-            fake_imgs, _, mu, logvar = netG(*inputs)
-        batch_idx = j = 0
-        s_tmp = '%s/%s' % (save_dir, keys[j])
-        k = -1
-        im = fake_imgs[k][j].data.cpu().numpy()
-        im = (im + 1.0) * 127.5
-        im = im.astype(np.uint8)
-        im = np.transpose(im, (1, 2, 0))
-        im = Image.fromarray(im)
-        from random import randrange
-        idx = randrange(999999)
-        fullpath = '%s_s%d.png' % (s_tmp, idx)
-        image_file = Path(fullpath)
-        if image_file.is_file():
-            os.remove(fullpath)
-        im.save(fullpath)
-        i+=1
+    transf_matrices = transformation_matrices[0]
+    transf_matrices_inv = transformation_matrices[1]
+    hidden = text_encoder.init_hidden(2)
+    words_embs, sent_emb = text_encoder(captions, cap_lens, hidden)
+    words_embs, sent_emb = words_embs.detach(), sent_emb.detach()
+    mask = (captions == 0)
+    num_words = words_embs.size(2)
+    if mask.size(1) > num_words:
+        mask = mask[:, :num_words]
+    inputs = (noise, local_noise, sent_emb, words_embs, mask, transf_matrices, transf_matrices_inv, label_one_hot, max_objects)
+    inputs = tuple((inp.to(cfg.DEVICE) if isinstance(inp, torch.Tensor) else inp) for inp in inputs)
+    with torch.no_grad():
+        fake_imgs, _, mu, logvar = netG(*inputs)
+    batch_idx = j = 0
+    s_tmp = '%s/%s' % (save_dir, keys[j])
+    k = -1
+    im = fake_imgs[k][j].data.cpu().numpy()
+    im = (im + 1.0) * 127.5
+    im = im.astype(np.uint8)
+    im = np.transpose(im, (1, 2, 0))
+    im = Image.fromarray(im)
+    from random import randrange
+    idx = randrange(999999)
+    fullpath = '%s_s%d.png' % (s_tmp, idx)
+    image_file = Path(fullpath)
+    if image_file.is_file():
+        os.remove(fullpath)
+    im.save(fullpath)
+    i+=1
     return JSONResponse({'result': fullpath, 'caption': cap[1]})
 
 

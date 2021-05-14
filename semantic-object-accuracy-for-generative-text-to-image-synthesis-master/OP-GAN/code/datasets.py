@@ -19,8 +19,10 @@ from miscc.utils import *
 logger = logging.getLogger()
 
 def prepare_data(data, eval=False):
-    if eval:
+    if eval and cfg.TRAIN.DEPLOY_FLAG:
         imgs, captions, captions_lens, class_ids, keys, transformation_matrices, label, bbox,cap = data
+    elif eval:
+        imgs, captions, captions_lens, class_ids, keys, transformation_matrices, label, bbox = data
     else:
         imgs, captions, captions_lens, class_ids, keys, transformation_matrices, label = data
 
@@ -48,8 +50,10 @@ def prepare_data(data, eval=False):
         captions = Variable(captions).detach()
         sorted_cap_lens = Variable(sorted_cap_lens).detach()
 
-    if eval:
+    if eval and cfg.TRAIN.DEPLOY_FLAG:
         return [real_imgs, captions, sorted_cap_lens, class_ids, keys, transformation_matrices, label, bbox, cap]
+    elif eval:
+        return [real_imgs, captions, sorted_cap_lens, class_ids, keys, transformation_matrices, label, bbox]
     else:
         return [real_imgs, captions, sorted_cap_lens, class_ids, keys, transformation_matrices, label]
 
@@ -346,9 +350,22 @@ class TextDataset(data.Dataset):
 
     def __getitem__(self, index):
         #
-        key = self.filenames[index]
+        #key = self.filenames[index]
+        from random import randrange
+        if not cfg.TRAIN.FLAG and cfg.TRAIN.DEPLOY_FLAG:
+            #print('label', cfg.CURRENT_LABEL)
+            with open(cfg.TRAIN.CAPTION_PATH+cfg.CURRENT_LABEL+".pkl", "rb") as f:
+                captions = pickle.load(f)
+        new_ix = randrange(len(captions)-1)
+        new_idx = 1
+        current_caption_idx = captions[new_ix]["idx"]
+        new_sent_ix = current_caption_idx[0]*5+current_caption_idx[1]
+
+        #print('cur_caption_ix', current_caption_idx[0])
+        key = self.filenames[current_caption_idx[0]]
+        index = current_caption_idx[0]
         cls_id = self.class_id[index]
-        #
+        #print('cls_id', cls_id)
         if self.bbox is not None:
             if self.use_generated_bboxes:
                 rand_num = np.random.randint(0, 5, 1)
@@ -357,6 +374,9 @@ class TextDataset(data.Dataset):
                 bbox = self.bbox[index]
 
         img_name = '%s/%s.jpg' % (self.img_dir, key)
+        #from shutil import copyfile
+        #copyfile(img_name, "./static/test.jpg")
+
         imgs, bbox_scaled = get_imgs(img_name, self.imsize, self.max_objects,
                                      bbox, self.transform, normalize=self.norm)
 
@@ -370,15 +390,17 @@ class TextDataset(data.Dataset):
 
         label = self.get_one_hot_labels(label)
 
-        if not cfg.TRAIN.FLAG:
-            with open("../../SOA/captions/"+cfg.CURRENT_LABEL+".pkl", "rb") as f:
-                captions = pickle.load(f)
+#ccheck path for eval and deploy
+        if not cfg.TRAIN.FLAG and cfg.TRAIN.DEPLOY_FLAG:
+        #    with open("../../SOA/captions/"+cfg.CURRENT_LABEL+".pkl", "rb") as f:
+        #        captions = pickle.load(f)
 
            # new_ix = random.randint(0, len(captions))
-            from random import randrange
-            new_ix = randrange(len(captions))
-            current_caption_idx = captions[new_ix]["idx"]
-            new_sent_ix = current_caption_idx[0]*5+current_caption_idx[1]
+           # from random import randrange
+           # new_ix = randrange(len(captions))
+            #current_caption_idx = captions[new_ix]["idx"]
+            #new_sent_ix = current_caption_idx[0]*5+current_caption_idx[1]
+            new_sent_ix = new_sent_ix
 
         else:
             sent_ix = random.randint(0, self.embeddings_num)
@@ -390,8 +412,10 @@ class TextDataset(data.Dataset):
         for w in self.captions[new_sent_ix]:
             cap += self.ixtoword[w] + " "
 
-        if self.eval:
+        if self.eval and cfg.TRAIN.DEPLOY_FLAG:
             return imgs, caps, cap_len, cls_id, key, transformation_matrices, label, bbox_scaled, cap
+        elif self.eval:
+            return imgs, caps, cap_len, cls_id, key, transformation_matrices, label, bbox_scaled
         return imgs, caps, cap_len, cls_id, key, transformation_matrices, label
 
     def __len__(self):

@@ -507,7 +507,8 @@ class condGANTrainer(object):
             # the path to save generated images
                 s_tmp = model_dir[:model_dir.rfind('.pth')].split("/")[-1]
                 cfg.CURRENT_LABEL="label_"+label
-                save_dir = '%s/%s/%s/%s' % ("../output", s_tmp, split_dir, label_path)
+                label_id = str(label_idx).zfill(2)
+                save_dir = '%s/%s/%s/%s' % ("../output", s_tmp, split_dir, "label_"+label_id)
                 mkdir_p(save_dir)
                 logger.info("Saving images to: {}".format(save_dir))
 
@@ -520,8 +521,12 @@ class condGANTrainer(object):
                 for step in tqdm(range(number_batches)):
                     data = data_iter.next()
 
-                    imgs, captions, cap_lens, class_ids, keys, transformation_matrices, label_one_hot, _, _ = prepare_data(
-                        data, eval=True)
+                    if cfg.TRAIN.DEPLOY_FLAG:
+                        imgs, captions, cap_lens, class_ids, keys, transformation_matrices, label_one_hot, _, _ = prepare_data(
+                            data, eval=True)
+                    else:
+                        imgs, captions, cap_lens, class_ids, keys, transformation_matrices, label_one_hot, _ = prepare_data(
+                            data, eval=True)
 
                     transf_matrices = transformation_matrices[0]
                     transf_matrices_inv = transformation_matrices[1]

@@ -331,14 +331,14 @@ def calc_soa(args):
     # calculate SOA-C and SOA-I
     print("")
     class_average_acc = calc_overall_class_average_accuracy(results_dict)
-    print("Class average accuracy for all classes (SOA-C) is: {:6.4f}".format(class_average_acc))
+    print("Semantic Object Accuracy for all classes (SOA) is: {:6.4f}".format(class_average_acc))
 
     image_average_acc = calc_image_weighted_average_accuracy(results_dict)
-    print("Image weighted average accuracy (SOA-I) is: {:6.4f}".format(image_average_acc))
+    #print("Image weighted average accuracy (SOA-I) is: {:6.4f}".format(image_average_acc))
 
     top_40_class_average_acc, bottom_40_class_average_acc = calc_split_class_average_accuracy(results_dict)
-    print("Top (SOA-C-Top40) and Bottom (SOA-C-Bot40) 40 class average accuracy is: {:6.4f} and {:6.4f}".
-          format(top_40_class_average_acc, bottom_40_class_average_acc))
+    #print("Top (SOA-C-Top40) and Bottom (SOA-C-Bot40) 40 class average accuracy is: {:6.4f} and {:6.4f}".
+     #     format(top_40_class_average_acc, bottom_40_class_average_acc))
 
     # if IoU is true calculate the IoU scores, too
     if args.iou:
