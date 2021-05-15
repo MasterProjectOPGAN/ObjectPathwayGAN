@@ -12,23 +12,9 @@
     <p>
     <h3> Generating Images from Object Pathway-Generative Adversial Network Model</h3>
     </p>
-     <!--div class="dropdown">
-  	<button onclick="showPicked()" class="dropbtn">Dropdown</button>
-  	<div id="myDropdown" class="dropdown-content">
-    		<a href="#">person</a>
-    		<a href="#">bicycle</a>
-    		<a href="#">car</a>
-  	</div>
-     </div!--> 
       <div class='analyze'>
-      <!--label for="text">Input text:</label>
-      <input type="text" id="text1" name="text"><br><br!-->
       <label for="text">Select an Object</label>
 	<select id="text1" name="text1">
-		<!--option value="person">Person</option>
-		<option value="car">Car</option>
-		<option value="laptop">Laptop</option>
-		<option value="train">Train</option!-->
 	<script>
 	  var options =
 	[
@@ -81,7 +67,276 @@
   	{
     		"text"  : "Stop Sign",
     		"value" : "stopsign"
+  	},
+  	{
+    		"text"  : "Parking Meter",
+    		"value" : "parkingmeter"
+  	},
+  	{
+    		"text"  : "Bench",
+    		"value" : "bench"
+  	},
+  	{
+    		"text"  : "Bird",
+    		"value" : "bird"
+  	},
+  	{
+    		"text"  : "Cat",
+    		"value" : "cat"
+  	},
+  	{
+    		"text"  : "Dog",
+    		"value" : "dog"
+  	},
+  	{
+    		"text"  : "Horse",
+    		"value" : "horse"
+  	},
+  	{
+    		"text"  : "Sheep",
+    		"value" : "sheep"
+  	},
+  	{
+    		"text"  : "Cow",
+    		"value" : "cow"
+  	},
+  	{
+    		"text"  : "Elephant",
+    		"value" : "elephant"
+  	},
+  	{
+    		"text"  : "Bear",
+    		"value" : "bear"
+  	},
+  	{
+    		"text"  : "Zebra",
+    		"value" : "zebra"
+  	},
+  	{
+    		"text"  : "Giraffe",
+    		"value" : "giraffe"
+  	},
+  	{
+    		"text"  : "Backpack",
+    		"value" : "backpack"
+  	},
+  	{
+    		"text"  : "Umbrella",
+    		"value" : "umbrella"
+  	},
+  	{
+    		"text"  : "Handbag",
+    		"value" : "handbag"
+  	},
+  	{
+    		"text"  : "Tie",
+    		"value" : "tie"
+  	},
+  	{
+    		"text"  : "Suitcase",
+    		"value" : "suitcase"
+  	},
+  	{
+    		"text"  : "Frisbee",
+    		"value" : "frisbee"
+  	},
+  	{
+    		"text"  : "Skis",
+    		"value" : "skis"
+  	},
+  	{
+    		"text"  : "Snowboard",
+    		"value" : "snowboard"
+  	},
+  	{
+    		"text"  : "Ball",
+    		"value" : "ball"
+  	},
+  	{
+    		"text"  : "Kite",
+    		"value" : "kite"
+  	},
+  	{
+    		"text"  : "Baseball Bat",
+    		"value" : "baseballbat"
+  	},
+  	{
+    		"text"  : "Baseball Glove",
+    		"value" : "baseballglove"
+  	},
+  	{
+    		"text"  : "Skateboard",
+    		"value" : "skateboard"
+  	},
+  	{
+    		"text"  : "Surf Board",
+    		"value" : "surfboard"
+  	},
+  	{
+    		"text"  : "Racket",
+    		"value" : "racket"
+  	},
+  	{
+    		"text"  : "Bottle",
+    		"value" : "bottle"
+  	},
+  	{
+    		"text"  : "Wineglass",
+    		"value" : "wineglass"
+  	},
+  	{
+    		"text"  : "Cup",
+    		"value" : "cup"
+  	},
+  	{
+    		"text"  : "Fork",
+    		"value" : "fork"
+  	},
+  	{
+    		"text"  : "Knife",
+    		"value" : "knife"
+  	},
+  	{
+    		"text"  : "Bowl",
+    		"value" : "bowl"
+  	},
+  	{
+    		"text"  : "Banana",
+    		"value" : "banana"
+  	},
+  	{
+    		"text"  : "Apple",
+    		"value" : "apple"
+  	},
+  	{
+    		"text"  : "Sandwich",
+    		"value" : "sandwich"
+  	},
+  	{
+    		"text"  : "Oranges",
+    		"value" : "oranges"
+  	},
+  	{
+    		"text"  : "Broccoli",
+    		"value" : "broccoli"
+  	},
+  	{
+    		"text"  : "Hotdog",
+    		"value" : "hotdog"
+  	},
+  	{
+    		"text"  : "Carrot",
+    		"value" : "carrot"
+  	},
+  	{
+    		"text"  : "Pizza",
+    		"value" : "pizza"
+  	},
+  	{
+    		"text"  : "Donut",
+    		"value" : "donut"
+  	},
+  	{
+    		"text"  : "Cake",
+    		"value" : "cake"
+  	},
+  	{
+    		"text"  : "Chair",
+    		"value" : "chair"
+  	},
+  	{
+    		"text"  : "Sofa",
+    		"value" : "sofa"
+  	},
+  	{
+    		"text"  : "Potted Plant",
+    		"value" : "pottedplant"
+  	},
+  	{
+    		"text"  : "Bed",
+    		"value" : "bed"
+  	},
+  	{
+    		"text"  : "Table",
+    		"value" : "table"
+  	},
+  	{
+    		"text"  : "Toilet",
+    		"value" : "toilet"
+  	},
+  	{
+    		"text"  : "Monitor",
+    		"value" : "monitor"
+  	},
+  	{
+    		"text"  : "Laptop",
+    		"value" : "laptop"
+  	},
+  	{
+    		"text"  : "Computer Mouse",
+    		"value" : "computermouse"
+  	},
+  	{
+    		"text"  : "Remote",
+    		"value" : "remote"
+  	},
+  	{
+    		"text"  : "Keyboard",
+    		"value" : "keyboard"
+  	},
+  	{
+    		"text"  : "Cellphone",
+    		"value" : "cellphone"
+  	},
+  	{
+    		"text"  : "Microwave",
+    		"value" : "microwave"
+  	},
+  	{
+    		"text"  : "Oven",
+    		"value" : "oven"
+  	},
+  	{
+    		"text"  : "Toaster",
+    		"value" : "toaster"
+  	},
+  	{
+    		"text"  : "Sink",
+    		"value" : "sink"
+  	},
+	{
+    		"text"  : "Refrigerator",
+    		"value" : "refrigerator"
+  	},
+  	{
+    		"text"  : "Book",
+    		"value" : "book"
+  	},
+  	{
+    		"text"  : "Clock",
+    		"value" : "clock"
+  	},
+  	{
+    		"text"  : "Vase",
+    		"value" : "vase"
+  	},
+  	{
+    		"text"  : "Scissor",
+    		"value" : "scissor"
+  	},
+  	{
+    		"text"  : "Teddy Bear",
+    		"value" : "teddybear"
+  	},
+  	{
+    		"text"  : "Hair Dryer",
+    		"value" : "hairdrier"
+  	},
+  	{
+    		"text"  : "Tooth Brush",
+    		"value" : "toothbrush"
   	}
+
 	];
 
 	var selectBox = document.getElementById('text1');
@@ -95,10 +350,21 @@
 	</label>
         <button id='analyze-button' onclick='analyze()'>Analyze</button>
       </div>
-      <div id='image-path'>
-        <!--img id='image-path' alt="Generated Image" style="width:256px"--!>
+      <div>
+      <label id='image-path0'>
       </div>
       <div>
+      <label id='image-path1'>
+      </div>
+      <div>
+        <img id='image-path-new1' alt="Generated Image1" style="width:256px">
+      <div>
+      <label id='image-path2'>
+      </div>
+        <img id='image-path-new2' alt="Generated Image2" style="width:256px">
+      <div>
+      <label id='image-path'>
+      </div>
         <img id='image-path-new' alt="Generated Image" style="width:256px">
       </div>
   </div>

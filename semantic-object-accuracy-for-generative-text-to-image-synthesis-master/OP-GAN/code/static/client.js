@@ -34,11 +34,13 @@ function analyze() {
   xhr.onload = function(e) {
     if (this.readyState === 4) {
       var response = JSON.parse(e.target.responseText);
-      //el("result-label").innerHTML = `Result = ${response["caption"]}`;
-      el("image-path").innerHTML = `${response["caption"]}`;
-      //console.log(response);
-      //var urlCreator = window.URL || window.webkitURL;
-      //var imageUrl = urlCreator.createObjectURL(this.response);
+      el("image-path0").innerHTML = `${response["caption"]}`;
+      console.log(response);
+	    el("image-path1").innerHTML = "Image generated from 15th checkpoint model";
+      document.querySelector("#image-path-new1").src = `${response["res"]}`;
+	    el("image-path2").innerHTML = "Image generated from 20th checkpoint model";
+      document.querySelector("#image-path-new2").src = `${response["resul"]}`;
+	    el("image-path").innerHTML = "Image generated from 25th checkpoint model";
       document.querySelector("#image-path-new").src = `${response["result"]}`;
     }
     el("analyze-button").innerHTML = "Generate Image";

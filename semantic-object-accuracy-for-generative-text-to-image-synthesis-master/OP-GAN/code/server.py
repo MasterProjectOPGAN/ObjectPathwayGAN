@@ -24,8 +24,14 @@ from tqdm import tqdm
 import numpy as np
 import glob
 from flask import Flask, request, send_from_directory
+from starlette.middleware import Middleware
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+middleware = [
+    Middleware(HTTPSRedirectMiddleware)
+]
 
 app = Starlette()
+#app.add_middleware(HTTPSRedirectMiddleware)
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_headers=['X-Requested-With', 'Content-Type'])
 app.mount('/static', StaticFiles(directory='./static'))
 
@@ -33,16 +39,28 @@ path = Path(__file__).parent
 
 cfg.TRAIN.FLAG = False
 cfg.TRAIN.DEPLOY_FLAG = True
+netG_1 = model.G_NET()
+netG_2 = model.G_NET()
 netG = model.G_NET()
 netG.apply(weights_init)
 netG.to()
-state_dict = torch.load('../output/coco_glu-gan2_2021_04_06_19_01_43_9609/Model/checkpoint_0020.pth', map_location=lambda storage, loc: storage)
+
+state_dict_1 = torch.load('../output/coco_glu-gan2_2021_04_06_19_01_43_9609/Model/checkpoint_0015.pth', map_location=lambda storage, loc: storage)
+state_dict_2 = torch.load('../output/coco_glu-gan2_2021_04_06_19_01_43_9609/Model/checkpoint_0020.pth', map_location=lambda storage, loc: storage)
+state_dict = torch.load('../output/coco_glu-gan2_2021_04_06_19_01_43_9609/Model/checkpoint_0025.pth', map_location=lambda storage, loc: storage)
 
 netG.load_state_dict(state_dict["netG"])
+netG_1.load_state_dict(state_dict_1["netG"])
+netG_2.load_state_dict(state_dict_2["netG"])
+
 for p in netG.parameters():
     p.requires_grad = False
 netG.to('cuda:0')
+netG_1.to('cuda:0')
+netG_2.to('cuda:0')
 netG.eval()
+netG_1.eval()
+netG_2.eval()
 
 cfg.DEVICE = 'cuda:0'
 
@@ -75,7 +93,7 @@ async def analyze(request):
     #img = open_image(BytesIO(img_bytes))
     #prediction = learn.predict(img)[0]
     i=0
-    max_objects = 10
+    max_objects = 3
     text_data = await request.form()
     text_bytes = text_data['file']
     cfg.CURRENT_LABEL = "label_"+text_bytes
@@ -96,11 +114,12 @@ async def analyze(request):
     local_noise.data.normal_(0, 1)
     save_dir = './static'
     data_iter = iter(dataloader)
-
-    #for step in tqdm(range(1)):
+    allpath = []
+    allcap = []
+    #for step in tqdm(range(10)):
     data = data_iter.next()
     imgs, captions, cap_lens, class_ids, keys, transformation_matrices, label_one_hot, _, cap = prepare_data(
-                                    data, eval=True)
+                                data, eval=True)
     transf_matrices = transformation_matrices[0]
     transf_matrices_inv = transformation_matrices[1]
     hidden = text_encoder.init_hidden(2)
@@ -112,25 +131,63 @@ async def analyze(request):
         mask = mask[:, :num_words]
     inputs = (noise, local_noise, sent_emb, words_embs, mask, transf_matrices, transf_matrices_inv, label_one_hot, max_objects)
     inputs = tuple((inp.to(cfg.DEVICE) if isinstance(inp, torch.Tensor) else inp) for inp in inputs)
+
+    with torch.no_grad():
+        fake_imgs, _, mu, logvar = netG_1(*inputs)
+        batch_idx = j = 0
+        s_tmp = '%s/%s' % (save_dir, keys[j])
+        k = -1
+        im = fake_imgs[k][j].data.cpu().numpy()
+        im = (im + 1.0) * 127.5
+        im = im.astype(np.uint8)
+        im = np.transpose(im, (1, 2, 0))
+        im = Image.fromarray(im)
+        from random import randrange
+        idx = randrange(999999)
+        fullpath = '%s_s%d.png' % (s_tmp, idx)
+        image_file = Path(fullpath)
+        if image_file.is_file():
+            os.remove(fullpath)
+        im.save(fullpath)    
+        allpath.append(fullpath)
+    with torch.no_grad():
+        fake_imgs, _, mu, logvar = netG_2(*inputs)
+        batch_idx = j = 0
+        s_tmp = '%s/%s' % (save_dir, keys[j])
+        k = -1
+        im = fake_imgs[k][j].data.cpu().numpy()
+        im = (im + 1.0) * 127.5
+        im = im.astype(np.uint8)
+        im = np.transpose(im, (1, 2, 0))
+        im = Image.fromarray(im)
+        from random import randrange
+        idx = randrange(999999)
+        fullpath = '%s_s%d.png' % (s_tmp, idx)
+        image_file = Path(fullpath)
+        if image_file.is_file():
+            os.remove(fullpath)
+        im.save(fullpath)    
+        allpath.append(fullpath)
     with torch.no_grad():
         fake_imgs, _, mu, logvar = netG(*inputs)
-    batch_idx = j = 0
-    s_tmp = '%s/%s' % (save_dir, keys[j])
-    k = -1
-    im = fake_imgs[k][j].data.cpu().numpy()
-    im = (im + 1.0) * 127.5
-    im = im.astype(np.uint8)
-    im = np.transpose(im, (1, 2, 0))
-    im = Image.fromarray(im)
-    from random import randrange
-    idx = randrange(999999)
-    fullpath = '%s_s%d.png' % (s_tmp, idx)
-    image_file = Path(fullpath)
-    if image_file.is_file():
-        os.remove(fullpath)
-    im.save(fullpath)
+        batch_idx = j = 0
+        s_tmp = '%s/%s' % (save_dir, keys[j])
+        k = -1
+        im = fake_imgs[k][j].data.cpu().numpy()
+        im = (im + 1.0) * 127.5
+        im = im.astype(np.uint8)
+        im = np.transpose(im, (1, 2, 0))
+        im = Image.fromarray(im)
+        from random import randrange
+        idx = randrange(999999)
+        fullpath = '%s_s%d.png' % (s_tmp, idx)
+        image_file = Path(fullpath)
+        if image_file.is_file():
+            os.remove(fullpath)
+        im.save(fullpath)    
+        allpath.append(fullpath)
     i+=1
-    return JSONResponse({'result': fullpath, 'caption': cap[1]})
+    return JSONResponse({'res': allpath[0], 'resul': allpath[1], 'result': allpath[2], 'caption': cap[1]})
 
 
 if __name__ == '__main__':
